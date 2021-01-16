@@ -17,7 +17,7 @@ function Comment({comment}) {
     </div>
     <div className="mb-2 media last-comments-header align-items-center">
       <div className="last-comments-avatar mr-2">
-        {comment.user.picture && <img className="last-comments-avatar-image" src={comment.user.picture} alt={comment.user.name} loading="lazy" width={28} height={28}/>}
+        {comment.user.picture && <img src={comment.user.picture} alt={comment.user.name} loading="lazy" width={28} height={28}/>}
       </div>
       <div className="media-body">
         <h5 className="m-0 small font-weight-bold">

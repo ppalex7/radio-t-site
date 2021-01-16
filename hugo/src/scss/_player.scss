@@ -69,12 +69,8 @@ $podcast-player-cover-margin: .5rem;
   display: inline-flex;
   svg {
     display: block;
-    fill: currentColor !important;
     width: 1.1em;
     height: auto;
-    path {
-      fill: currentColor !important;
-    }
   }
 }
 .player-playback {

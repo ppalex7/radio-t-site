@@ -1,10 +1,18 @@
 const fs = require('fs');
+const util = require('util');
+const glob = require('glob');
 const mix = require('laravel-mix');
 const babel = require('@babel/core');
 const ModernizrWebpackPlugin = require('modernizr-webpack-plugin');
+const PurgecssPlugin = require('purgecss-webpack-plugin');
+const purgecssHtml = require('purgecss-from-html');
 
 const USE_NODE_SASS = true; // faster https://github.com/JeffreyWay/laravel-mix/issues/1832
 const useNodeSass = USE_NODE_SASS ? {implementation: require('node-sass')} : {};
+const purgecssPaths = [
+  ...glob.sync('layouts/**/*.html', { nodir: true }),
+  ...glob.sync('src/**/*.{js,ts,jsx,tsx}', { nodir: true }),
+]
 
 mix.disableNotifications();
 
@@ -24,7 +32,41 @@ mix.webpackConfig({
   mix.sass(`src/scss/${style}-dark.scss`, '.', useNodeSass);
 });
 
-mix.webpackConfig({plugins: [new ModernizrWebpackPlugin(require('./.modernizr'))]});
+mix.webpackConfig({
+  plugins: [
+    new ModernizrWebpackPlugin(require('./.modernizr')),
+    new PurgecssPlugin({
+      rejected: true,
+      paths: purgecssPaths,
+      safelist: () => ({
+        deep: [/^is-online/],
+      }),
+      extractors: [{
+        extractor: (content) => {
+          const classNames = purgecssHtml(content)
+
+          return classNames
+        },
+        extensions: ['html']
+      },{
+        extractor: (content) => {
+          const regex = /classList\.\w+\(\'(.*)\'\)/g
+          const regex1 = /classList\.\w+\(\'(.*)\'\)/
+          const match = content.match(regex);
+
+          if (match === null) {
+            return []
+          }
+
+          const classNames = match.map(s => s.match(regex1)[1])
+
+          return { classes: classNames }
+        },
+        extensions: ['js']
+      }]
+    }),
+  ]
+});
 
 if (process.env.ANALYZE) {
   const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
